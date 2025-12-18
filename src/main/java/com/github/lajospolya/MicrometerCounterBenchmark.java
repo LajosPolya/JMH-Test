@@ -156,31 +156,31 @@ public class MicrometerCounterBenchmark {
     }
 
     @Benchmark
-    public void measureShared(CachedTaglessCounterBenchmarkState state) {
+    public void notCachedTaglessCounter(ReinstantiatedTaglessCounterBenchmarkState state) {
         state.counter.increment();
     }
 
     @Benchmark
-    public void measureSharedCreate(ReinstantiatedTaglessCounterBenchmarkState state) {
+    public void cachedTaglessCounter(CachedTaglessCounterBenchmarkState state) {
         state.counter.increment();
     }
 
     @Benchmark
-    public void measureSharedCreateEnum(ReinstantiatedTaggedBenchmarkState state) {
+    public void notCachedTaggedCounters(ReinstantiatedTaggedBenchmarkState state) {
         for (ArbitraryState enumState : state.states) {
             state.counter.increment(enumState);
         }
     }
 
     @Benchmark
-    public void measureSharedEnum(CachedEnumMapBenchmarkState state) {
+    public void enumMapCachedTaggedCounters(CachedEnumMapBenchmarkState state) {
         for (ArbitraryState enumState : state.states) {
             state.counter.increment(enumState);
         }
     }
 
     @Benchmark
-    public void measureSharedHash(CachedHashMapBenchmarkState state) {
+    public void hashMapCachedTaggedCounters(CachedHashMapBenchmarkState state) {
         for (ArbitraryState enumState : state.states) {
             state.counter.increment(enumState);
         }
