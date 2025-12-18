@@ -204,5 +204,4 @@ public class MicrometerCounterBenchmark {
 
         new Runner(opt).run();
     }
-
 }
