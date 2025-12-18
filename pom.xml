@@ -57,6 +57,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-->
+        This dependency is not on Maven Central and must therefore be built and published locally.
+        This repository contains the instructions to build the JAR and publish it locally.
+        https://github.com/LajosPolya/Micrometer-Performance
+        <!-->
         <dependency>
             <groupId>com.github.lajospolya</groupId>
             <artifactId>meterRegistryPerformance</artifactId>
