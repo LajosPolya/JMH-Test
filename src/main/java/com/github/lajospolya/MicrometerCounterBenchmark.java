@@ -97,7 +97,8 @@ public class MicrometerCounterBenchmark {
             final int numStates = ArbitraryState.values().length;
             final ArbitraryState[] tempStates = new ArbitraryState[size];
             for (int i = 0; i < size; i++) {
-                tempStates[i] = ArbitraryState.values()[(int) (i * 3L) % numStates];
+                // Make Pseudo random by multiplying and adding numbers to `i` before the modulus operator is used
+                tempStates[i] = ArbitraryState.values()[(int) (i * 3L + 3) % numStates];
             }
             return tempStates;
         }
