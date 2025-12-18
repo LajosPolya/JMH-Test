@@ -31,9 +31,15 @@
 
 package com.github.lajospolya;
 
+import com.github.lajospolya.meterRegistry.ArbitraryState;
+import com.github.lajospolya.meterRegistry.CachedEnumMapTaggedCounter;
+import com.github.lajospolya.meterRegistry.CachedHashMapTaggedCounter;
+import com.github.lajospolya.meterRegistry.CachedTaglessCounter;
+import com.github.lajospolya.meterRegistry.ReinstantiatedTaggedCounter;
+import com.github.lajospolya.meterRegistry.ReinstantiatedTaglessCounter;
+import com.github.lajospolya.meterRegistry.TaggedCounter;
+import com.github.lajospolya.meterRegistry.TaglessCounter;
 import org.openjdk.jmh.annotations.Benchmark;
-
-import com.github.lajospolya.meterRegistry.SimpleCounter;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
@@ -53,68 +59,130 @@ public class MicrometerCounterBenchmark {
 
     /**
      * This state is shared across the entire benchmark.
-     * The state contains an instance of {@link SimpleCounter} which is used to create and/or increment instances of
+     * The state contains an instance of {@link ReinstantiatedTaglessCounter} which is used to create and increment instances of
      * {@link io.micrometer.core.instrument.Counter}
      */
     @State(Scope.Benchmark)
-    public static class SimpleCounterBenchmarkState {
-        private final SimpleCounter simpleCounter = new SimpleCounter();
+    public static class ReinstantiatedTaglessCounterBenchmarkState {
+        private final TaglessCounter counter = new ReinstantiatedTaglessCounter();
     }
 
     /**
      * This state is shared across the entire benchmark.
-     * The state contains an instance of {@link SimpleCounter} which is used to create and/or increment instances of
+     * The state contains an instance of {@link CachedTaglessCounter} which is used to increment instances of
      * {@link io.micrometer.core.instrument.Counter}
-     * <p>
-     * The state also contains an array of {@link com.github.lajospolya.meterRegistry.SimpleCounter.EnumState}. This
-     * array is pseudo randomly initialized to a size dictated by {@link BenchmarkEnumState#size}.
      */
     @State(Scope.Benchmark)
-    public static class BenchmarkEnumState {
-        private final SimpleCounter simpleCounter = new SimpleCounter();
+    public static class CachedTaglessCounterBenchmarkState {
+        private final TaglessCounter counter = new CachedTaglessCounter();
+    }
+
+    /**
+     * This state is shared across the entire benchmark.
+     * The state contains an instance of {@link ReinstantiatedTaggedCounter} which is used to create and increment
+     * instances of {@link io.micrometer.core.instrument.Counter}
+     * <p>
+     * The state also contains an array of {@link ArbitraryState}. This array is pseudo randomly initialized to a size
+     * dictated by {@link ReinstantiatedTaggedBenchmarkState#size}.
+     */
+    @State(Scope.Benchmark)
+    public static class ReinstantiatedTaggedBenchmarkState {
+        private final TaggedCounter counter = new ReinstantiatedTaggedCounter();
 
         private final int size = 1_000_000;
-        private final SimpleCounter.EnumState[] states = initState();
+        private final ArbitraryState[] states = initState();
 
 
-        private SimpleCounter.EnumState[] initState() {
-            final int numStates = SimpleCounter.EnumState.values().length;
-            final SimpleCounter.EnumState[] tempStates = new SimpleCounter.EnumState[size];
+        private ArbitraryState[] initState() {
+            final int numStates = ArbitraryState.values().length;
+            final ArbitraryState[] tempStates = new ArbitraryState[size];
             for (int i = 0; i < size; i++) {
-                tempStates[i] = SimpleCounter.EnumState.values()[(int) (i * 3L) % numStates];
+                tempStates[i] = ArbitraryState.values()[(int) (i * 3L) % numStates];
+            }
+            return tempStates;
+        }
+    }
+
+    /**
+     * This state is shared across the entire benchmark.
+     * The state contains an instance of {@link CachedEnumMapTaggedCounter} which is used to increment instances of
+     * {@link io.micrometer.core.instrument.Counter}
+     * <p>
+     * The state also contains an array of {@link ArbitraryState}. This array is pseudo randomly initialized to a size
+     * dictated by {@link CachedEnumMapBenchmarkState#size}.
+     */
+    @State(Scope.Benchmark)
+    public static class CachedEnumMapBenchmarkState {
+        private final TaggedCounter counter = new CachedEnumMapTaggedCounter();
+
+        private final int size = 1_000_000;
+        private final ArbitraryState[] states = initState();
+
+
+        private ArbitraryState[] initState() {
+            final int numStates = ArbitraryState.values().length;
+            final ArbitraryState[] tempStates = new ArbitraryState[size];
+            for (int i = 0; i < size; i++) {
+                tempStates[i] = ArbitraryState.values()[(int) (i * 3L) % numStates];
+            }
+            return tempStates;
+        }
+    }
+
+    /**
+     * This state is shared across the entire benchmark.
+     * The state contains an instance of {@link CachedHashMapTaggedCounter} which is used to increment instances of
+     * {@link io.micrometer.core.instrument.Counter}
+     * <p>
+     * The state also contains an array of {@link ArbitraryState}. This array is pseudo randomly initialized to a size
+     * dictated by {@link CachedHashMapBenchmarkState#size}.
+     */
+    @State(Scope.Benchmark)
+    public static class CachedHashMapBenchmarkState {
+        private final TaggedCounter counter = new CachedHashMapTaggedCounter();
+
+        private final int size = 1_000_000;
+        private final ArbitraryState[] states = initState();
+
+
+        private ArbitraryState[] initState() {
+            final int numStates = ArbitraryState.values().length;
+            final ArbitraryState[] tempStates = new ArbitraryState[size];
+            for (int i = 0; i < size; i++) {
+                tempStates[i] = ArbitraryState.values()[(int) (i * 3L) % numStates];
             }
             return tempStates;
         }
     }
 
     @Benchmark
-    public void measureShared(SimpleCounterBenchmarkState state) {
-        state.simpleCounter.increment();
+    public void measureShared(CachedTaglessCounterBenchmarkState state) {
+        state.counter.increment();
     }
 
     @Benchmark
-    public void measureSharedCreate(SimpleCounterBenchmarkState state) {
-        state.simpleCounter.createAndIncrement();
+    public void measureSharedCreate(ReinstantiatedTaglessCounterBenchmarkState state) {
+        state.counter.increment();
     }
 
     @Benchmark
-    public void measureSharedCreateEnum(BenchmarkEnumState state) {
-        for (SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.createAndIncrement(enumState);
+    public void measureSharedCreateEnum(ReinstantiatedTaggedBenchmarkState state) {
+        for (ArbitraryState enumState : state.states) {
+            state.counter.increment(enumState);
         }
     }
 
     @Benchmark
-    public void measureSharedEnum(BenchmarkEnumState state) {
-        for (SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.incrementEnum(enumState);
+    public void measureSharedEnum(CachedEnumMapBenchmarkState state) {
+        for (ArbitraryState enumState : state.states) {
+            state.counter.increment(enumState);
         }
     }
 
     @Benchmark
-    public void measureSharedHash(BenchmarkEnumState state) {
-        for (SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.incrementHash(enumState);
+    public void measureSharedHash(CachedHashMapBenchmarkState state) {
+        for (ArbitraryState enumState : state.states) {
+            state.counter.increment(enumState);
         }
     }
 
@@ -127,7 +195,6 @@ public class MicrometerCounterBenchmark {
      *    $ java -jar target/benchmarks.jar MicrometerCounterBenchmark -t 4 -f 1
      *    (we requested 4 threads, single fork; there are also other options, see -h)
      */
-
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
                 .include(MicrometerCounterBenchmark.class.getSimpleName())
