@@ -34,7 +34,11 @@ package com.github.lajospolya;
 import org.openjdk.jmh.annotations.Benchmark;
 
 import com.github.lajospolya.meterRegistry.SimpleCounter;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -46,28 +50,8 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class MyBenchmark {
 
-    /*
-     * Most of the time, you need to maintain some state while the benchmark is
-     * running. Since JMH is heavily used to build concurrent benchmarks, we
-     * opted for an explicit notion of state-bearing objects.
-     *
-     * Below are two state objects. Their class names are not essential, it
-     * matters they are marked with @State. These objects will be instantiated
-     * on demand, and reused during the entire benchmark trial.
-     *
-     * The important property is that state is always instantiated by one of
-     * those benchmark threads which will then have the access to that state.
-     * That means you can initialize the fields as if you do that in worker
-     * threads (ThreadLocals are yours, etc).
-     */
-
     @State(Scope.Benchmark)
     public static class BenchmarkState {
-        SimpleCounter simpleCounter = new SimpleCounter();
-    }
-
-    @State(Scope.Thread)
-    public static class ThreadState {
         SimpleCounter simpleCounter = new SimpleCounter();
     }
 
@@ -82,47 +66,11 @@ public class MyBenchmark {
         private SimpleCounter.EnumState[] initState() {
             final int numStates = SimpleCounter.EnumState.values().length;
             final SimpleCounter.EnumState[] tempStates = new SimpleCounter.EnumState[size];
-            for(int i = 0; i < size; i++) {
-                tempStates[i] = SimpleCounter.EnumState.values()[(int)(i * 3L) % numStates];
+            for (int i = 0; i < size; i++) {
+                tempStates[i] = SimpleCounter.EnumState.values()[(int) (i * 3L) % numStates];
             }
             return tempStates;
         }
-    }
-
-    @State(Scope.Thread)
-    public static class ThreadEnumState {
-        SimpleCounter simpleCounter = new SimpleCounter();
-        private final int size = 1_000_000;
-        SimpleCounter.EnumState[] states = initState();
-
-
-        private SimpleCounter.EnumState[] initState() {
-            final int numStates = SimpleCounter.EnumState.values().length;
-            final SimpleCounter.EnumState[] tempStates = new SimpleCounter.EnumState[size];
-            for(int i = 0; i < size; i++) {
-                tempStates[i] = SimpleCounter.EnumState.values()[(int)(i * 3L) % numStates];
-            }
-            return tempStates;
-        }
-    }
-
-    /*
-     * Benchmark methods can reference the states, and JMH will inject the
-     * appropriate states while calling these methods. You can have no states at
-     * all, or have only one state, or have multiple states referenced. This
-     * simplifies building multithreaded benchmarks.
-     *
-     * For this exercise, we have two methods.
-     */
-
-    @Benchmark
-    public void measureUnshared(ThreadState state) {
-        // All benchmark threads will call in this method.
-        //
-        // However, since ThreadState is the Scope.Thread, each thread
-        // will have its own copy of the state, and this benchmark
-        // will measure unshared case.
-        state.simpleCounter.increment();
     }
 
     @Benchmark
@@ -136,16 +84,6 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public void measureUnsharedCreate(ThreadState state) {
-        // All benchmark threads will call in this method.
-        //
-        // However, since ThreadState is the Scope.Thread, each thread
-        // will have its own copy of the state, and this benchmark
-        // will measure unshared case.
-        state.simpleCounter.createAndIncrement();
-    }
-
-    @Benchmark
     public void measureSharedCreate(BenchmarkState state) {
         // All benchmark threads will call in this method.
         //
@@ -156,43 +94,22 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public void measureUnsharedCreateEnum(ThreadEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.createAndIncrement(enumState);
-        }
-    }
-
-    @Benchmark
     public void measureSharedCreateEnum(BenchmarkEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
+        for (SimpleCounter.EnumState enumState : state.states) {
             state.simpleCounter.createAndIncrement(enumState);
-        }
-    }
-
-    @Benchmark
-    public void measureUnsharedEnum(ThreadEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.incrementEnum(enumState);
         }
     }
 
     @Benchmark
     public void measureSharedEnum(BenchmarkEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
+        for (SimpleCounter.EnumState enumState : state.states) {
             state.simpleCounter.incrementEnum(enumState);
         }
     }
 
     @Benchmark
-    public void measureUnsharedHash(ThreadEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
-            state.simpleCounter.incrementHash(enumState);
-        }
-    }
-
-    @Benchmark
     public void measureSharedHash(BenchmarkEnumState state) {
-        for(SimpleCounter.EnumState enumState : state.states) {
+        for (SimpleCounter.EnumState enumState : state.states) {
             state.simpleCounter.incrementHash(enumState);
         }
     }
@@ -210,10 +127,6 @@ public class MyBenchmark {
      *    $ mvn clean install
      *    $ java -jar target/benchmarks.jar MyBenchmark -t 4 -f 1
      *    (we requested 4 threads, single fork; there are also other options, see -h)
-     *
-     * b) Via the Java API:
-     *    (see the JMH homepage for possible caveats when running from IDE:
-     *      http://openjdk.java.net/projects/code-tools/jmh/)
      */
 
     public static void main(String[] args) throws RunnerException {
