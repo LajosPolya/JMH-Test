@@ -51,8 +51,8 @@ public class MicrometerCounterBenchmark {
      * The state contains an instance of {@link ReinstantiatedTaggedCounter} which is used to create and increment
      * instances of {@link io.micrometer.core.instrument.Counter}
      * <p>
-     * The state also contains an array of {@link ArbitraryState}. This array is pseudo randomly initialized to a size
-     * dictated by {@link ReinstantiatedTaggedBenchmarkState#size}.
+     * The state also contains an array of {@link ArbitraryState}. The contents of the array is pseudo randomly
+     * initialized with a size dictated by {@link ReinstantiatedTaggedBenchmarkState#size}.
      */
     @State(Scope.Benchmark)
     public static class ReinstantiatedTaggedBenchmarkState {
@@ -78,8 +78,8 @@ public class MicrometerCounterBenchmark {
      * The state contains an instance of {@link CachedEnumMapTaggedCounter} which is used to increment instances of
      * {@link io.micrometer.core.instrument.Counter}
      * <p>
-     * The state also contains an array of {@link ArbitraryState}. This array is pseudo randomly initialized to a size
-     * dictated by {@link CachedEnumMapBenchmarkState#size}.
+     * The state also contains an array of {@link ArbitraryState}. The contents of the array is pseudo randomly
+     * initialized with a size dictated by {@link CachedEnumMapBenchmarkState#size}.
      */
     @State(Scope.Benchmark)
     public static class CachedEnumMapBenchmarkState {
