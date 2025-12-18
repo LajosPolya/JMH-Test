@@ -116,11 +116,6 @@ public class MyBenchmark {
 
     /*
      * ============================== HOW TO RUN THIS TEST: ====================================
-     *
-     * You are expected to see the drastic difference in shared and unshared cases,
-     * because you either contend for single memory location, or not. This effect
-     * is more articulated on large machines.
-     *
      * You can run this test:
      *
      * a) Via the command line:
