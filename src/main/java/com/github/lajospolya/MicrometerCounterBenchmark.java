@@ -48,19 +48,33 @@ import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-public class MyBenchmark {
+public class MicrometerCounterBenchmark {
 
+
+    /**
+     * This state is shared across the entire benchmark.
+     * The state contains an instance of {@link SimpleCounter} which is used to create and/or increment instances of
+     * {@link io.micrometer.core.instrument.Counter}
+     */
     @State(Scope.Benchmark)
-    public static class BenchmarkState {
-        SimpleCounter simpleCounter = new SimpleCounter();
+    public static class SimpleCounterBenchmarkState {
+        private final SimpleCounter simpleCounter = new SimpleCounter();
     }
 
+    /**
+     * This state is shared across the entire benchmark.
+     * The state contains an instance of {@link SimpleCounter} which is used to create and/or increment instances of
+     * {@link io.micrometer.core.instrument.Counter}
+     * <p>
+     * The state also contains an array of {@link com.github.lajospolya.meterRegistry.SimpleCounter.EnumState}. This
+     * array is pseudo randomly initialized to a size dictated by {@link BenchmarkEnumState#size}.
+     */
     @State(Scope.Benchmark)
     public static class BenchmarkEnumState {
-        SimpleCounter simpleCounter = new SimpleCounter();
+        private final SimpleCounter simpleCounter = new SimpleCounter();
 
         private final int size = 1_000_000;
-        SimpleCounter.EnumState[] states = initState();
+        private final SimpleCounter.EnumState[] states = initState();
 
 
         private SimpleCounter.EnumState[] initState() {
@@ -74,22 +88,12 @@ public class MyBenchmark {
     }
 
     @Benchmark
-    public void measureShared(BenchmarkState state) {
-        // All benchmark threads will call in this method.
-        //
-        // Since BenchmarkState is the Scope.Benchmark, all threads
-        // will share the state instance, and we will end up measuring
-        // shared case.
+    public void measureShared(SimpleCounterBenchmarkState state) {
         state.simpleCounter.increment();
     }
 
     @Benchmark
-    public void measureSharedCreate(BenchmarkState state) {
-        // All benchmark threads will call in this method.
-        //
-        // Since BenchmarkState is the Scope.Benchmark, all threads
-        // will share the state instance, and we will end up measuring
-        // shared case.
+    public void measureSharedCreate(SimpleCounterBenchmarkState state) {
         state.simpleCounter.createAndIncrement();
     }
 
@@ -120,13 +124,13 @@ public class MyBenchmark {
      *
      * a) Via the command line:
      *    $ mvn clean install
-     *    $ java -jar target/benchmarks.jar MyBenchmark -t 4 -f 1
+     *    $ java -jar target/benchmarks.jar MicrometerCounterBenchmark -t 4 -f 1
      *    (we requested 4 threads, single fork; there are also other options, see -h)
      */
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include(MyBenchmark.class.getSimpleName())
+                .include(MicrometerCounterBenchmark.class.getSimpleName())
                 .threads(4)
                 .forks(1)
                 .build();
